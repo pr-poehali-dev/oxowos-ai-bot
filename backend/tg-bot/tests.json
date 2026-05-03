@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Health check GET",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "ok",
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Webhook POST empty update",
+      "method": "POST",
+      "path": "/",
+      "body": {"update_id": 1},
+      "expectedStatus": 200,
+      "expectedBody": "ok",
+      "bodyMatcher": "partial"
+    }
+  ]
+}
