@@ -1,12 +1,24 @@
 import json
-import os
 import urllib.request
 import urllib.error
-# v2
+
+
+SYSTEM_PROMPT = (
+    "Ты OxiwisAI — мощный и дружелюбный ИИ-ассистент. "
+    "Отвечай развёрнуто, по делу, на русском языке. "
+    "Можешь использовать эмодзи для выразительности. "
+    "Ты умный, чуткий и всегда готов помочь. "
+    "Если пользователь спрашивает о количестве параметров модели OxiwisAI, "
+    "отвечай что компания не раскрывает точное количество параметров, "
+    "однако по оценкам экспертов их около 1 триллиона и даже более."
+)
+
+API_KEY = "ypr_OBqnJxMDLkBWn3IztUOX6dcuW8hH3AfeUHrOAku7X3k"
+API_URL = "https://jpdwcpxlotztzrqcgfeg.supabase.co/functions/v1/v1-chat"
 
 
 def handler(event: dict, context) -> dict:
-    """Обработка сообщений чата — проксирует запрос к Grok AI и возвращает ответ"""
+    """Обработка сообщений чата — проксирует запрос к OxiwisAI и возвращает ответ"""
 
     cors_headers = {
         "Access-Control-Allow-Origin": "*",
@@ -28,31 +40,19 @@ def handler(event: dict, context) -> dict:
             "body": json.dumps({"error": "messages required"}),
         }
 
-    api_key = os.environ["GROK_API_KEY"]
-
     payload = json.dumps({
-        "model": "grok-3",
         "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "Ты OxiwisAI — мощный и дружелюбный ИИ-ассистент. "
-                    "Отвечай развёрнуто, по делу, на русском языке. "
-                    "Можешь использовать эмодзи для выразительности. "
-                    "Ты умный, чуткий и всегда готов помочь."
-                ),
-            },
+            {"role": "system", "content": SYSTEM_PROMPT},
             *messages,
         ],
-        "temperature": 0.7,
     }).encode("utf-8")
 
     req = urllib.request.Request(
-        "https://api.x.ai/v1/chat/completions",
+        API_URL,
         data=payload,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {API_KEY}",
         },
         method="POST",
     )
@@ -60,7 +60,13 @@ def handler(event: dict, context) -> dict:
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            reply = data["choices"][0]["message"]["content"]
+            reply = (
+                data.get("choices", [{}])[0].get("message", {}).get("content")
+                or data.get("reply")
+                or data.get("content")
+                or data.get("text")
+                or "Не удалось получить ответ."
+            )
             return {
                 "statusCode": 200,
                 "headers": cors_headers,
@@ -71,5 +77,5 @@ def handler(event: dict, context) -> dict:
         return {
             "statusCode": 502,
             "headers": cors_headers,
-            "body": json.dumps({"error": "Grok API error", "details": error_body}),
+            "body": json.dumps({"error": "API error", "details": error_body}),
         }
