@@ -12,7 +12,7 @@ import psycopg2
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "t_p64448353_oxowos_ai_bot")
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_USER = "oxiwisai@gmail.com"  # будет заменён пользователем если нужно
+SMTP_USER = "oxiwissupport@gmail.com"
 
 
 def get_conn():
